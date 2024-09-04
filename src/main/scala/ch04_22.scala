@@ -12,8 +12,8 @@ object Ch04_22 {
 
   def run() = {
     val list1 = List("scala", "rust", "ada")
-    println(rankedWords(word => score(word), list1))
-    assert(rankedWords(word => score(word), list1) == List("rust", "scala", "ada"))
+    println(rankedWords(score, list1))
+    assert(rankedWords(score, list1) == List("rust", "scala", "ada"))
 
     println(rankedWords(word => score(word) + bonus(word), list1))
     assert(rankedWords(word => score(word) + bonus(word), list1) == List("scala", "rust", "ada"))
