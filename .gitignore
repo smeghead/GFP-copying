@@ -2,7 +2,15 @@
 *.log
 /.bsp
 /target
-/project/target
+/project/*
+.bloop
+.cache
+.gitconfig
+.ivy2
+.metals/
+.scala_history_jline3
+.vscode-server
+.vscode
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
