@@ -1,12 +1,29 @@
 
 object Ch07_09 {
 
-  case class Location(name: String)
-  case class Genre(name: String)
-  // case class YearsActiveStart(value: Int)
-  // case class YearsActiveEnd(value: Int)
+  enum MusicGenre {
+    case HeavyMetal
+    case Pop
+    case HardRock
+  }
+  import MusicGenre._
 
-  // newtype がエラーになる。
+  case class Location(name: String)
+
+  enum YearsActive {
+    case StillActive(since: Int)
+    case ActiveBetween(start: Int, end: Int)
+  }
+  import YearsActive._
+
+  def wasArtistActive(artist: Artist, yearStart: Int, yearEnd: Int): Boolean = {
+    artist.yearsActive match {
+      case StillActive(since)        => since <= yearEnd
+      case ActiveBetween(start, end) => start <= yearEnd && end >= yearStart
+    }
+  }
+
+  // // newtype がエラーになる。
   // opaque type Location = String
   // object Location {
   //   def apply(value: String): Location = value
@@ -15,41 +32,41 @@ object Ch07_09 {
 
   case class Artist(
     name: String,
-    genre: Genre,
+    genre: MusicGenre,
     origin: Location,
-    yearActiveStart: Int,
-    yearActiveEnd: Option[Int]
+    yearsActive: YearsActive
   )
 
   def searchArtists(
     artists: List[Artist],
-    genres: List[String],
+    genres: List[MusicGenre],
     locations: List[String],
     searchByActiveYears: Boolean,
     activeAfter: Int,
     activeBefore: Int
   ): List[Artist] = {
     val genreResult = if (genres.length > 0)
-                        artists.filter(artist => genres.contains(artist.genre.name))
+                        artists.filter(artist => genres.contains(artist.genre))
                       else artists
     val locationResult = if (locations.length > 0)
                            genreResult.filter(artist => locations.contains(artist.origin.name))
                          else genreResult
     if (searchByActiveYears)
-      locationResult.filter(artist => artist.yearActiveStart <= activeBefore &&
-                                      (artist.yearActiveEnd.forall(_ >= activeAfter)))
+      locationResult.filter(artist => wasArtistActive(artist, activeAfter, activeBefore))
+      //  artist.yearsActive.start <= activeBefore &&
+      //                                (artist.yearsActive.end.forall(_ >= activeAfter))
     else locationResult
   }
 
   val artists = List(
-    Artist("Metallica", Genre("Heave Metal"), Location("U.S."), 1981, None),
-    Artist("Led Zeppelin", Genre("Hard Rock"), Location("England"), 1968, Some(1980)),
-    Artist("Bee Gees", Genre("Pop"), Location("England"), 1958, Some(2003))
+    Artist("Metallica", HeavyMetal, Location("U.S."), StillActive(1981)),
+    Artist("Led Zeppelin", HardRock, Location("England"), ActiveBetween(1968, 1980)),
+    Artist("Bee Gees", Pop, Location("England"), ActiveBetween(1958, 2003))
   )
 
   def run(): Unit = {
     {
-      val result = searchArtists(artists, List("Pop"), List("England"), true, 1950, 2022)
+      val result = searchArtists(artists, List(Pop), List("England"), true, 1950, 2022)
       println(result)
     }
     {
