@@ -34,7 +34,7 @@ object Ch07_32 {
   def gatherSongs(playlists: List[Playlist], artist: Artist, genre: MusicGenre): List[Song] = {
     playlists.flatMap(playlist =>
       playlist.playlistType match {
-        case CustomSongsList(name) => playlist.songs
+        case CustomSongsList(name) => playlist.songs.filter(_.artist == artist)
         case ArtistSongsList(a) => if (a == artist) playlist.songs else List.empty
         case GenreSongsList(genres) => if (genres.contains(genre)) playlist.songs else List.empty
       }
@@ -62,7 +62,8 @@ object Ch07_32 {
       CustomSongsList(User("me")),
       List(
         Song("Hello, good by", Artist("The Beatles")),
-        Song("Jumping Jack Flash", Artist("The Rolling Stones"))
+        Song("Jumping Jack Flash", Artist("The Rolling Stones")),
+        Song("Monkey Wrench", Artist("Foo Fighters"))
       )
     )
   )
