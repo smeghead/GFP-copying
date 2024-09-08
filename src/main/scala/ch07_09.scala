@@ -1,6 +1,12 @@
 
 object Ch07_09 {
 
+  opaque type Location = String
+  object Location {
+    def apply(value: String): Location = value
+    extension(a: Location) def name: String = a
+  }
+
   enum MusicGenre {
     case HeavyMetal
     case Pop
@@ -13,19 +19,6 @@ object Ch07_09 {
     case ActiveBetween(start: Int, end: Int)
   }
   import YearsActive._
-
-  def wasArtistActive(artist: Artist, yearStart: Int, yearEnd: Int): Boolean = {
-    artist.yearsActive match {
-      case StillActive(since)        => since <= yearEnd
-      case ActiveBetween(start, end) => start <= yearEnd && end >= yearStart
-    }
-  }
-
-  opaque type Location = String
-  object Location {
-    def apply(value: String): Location = value
-    extension(a: Location) def name: String = a
-  }
 
   case class Artist(
     name: String,
@@ -52,6 +45,13 @@ object Ch07_09 {
     artist.yearsActive match {
       case StillActive(since) => currentYear - since
       case ActiveBetween(start, end) => end - start
+    }
+  }
+
+  def wasArtistActive(artist: Artist, yearStart: Int, yearEnd: Int): Boolean = {
+    artist.yearsActive match {
+      case StillActive(since)        => since <= yearEnd
+      case ActiveBetween(start, end) => start <= yearEnd && end >= yearStart
     }
   }
 
