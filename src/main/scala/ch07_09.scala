@@ -3,8 +3,8 @@ object Ch07_09 {
 
   case class Location(name: String)
   case class Genre(name: String)
-  case class YearsActiveStart(value: Int)
-  case class YearsActiveEnd(value: Int)
+  // case class YearsActiveStart(value: Int)
+  // case class YearsActiveEnd(value: Int)
 
   // newtype がエラーになる。
   // opaque type Location = String
@@ -17,9 +17,8 @@ object Ch07_09 {
     name: String,
     genre: Genre,
     origin: Location,
-    yearActiveStart: YearsActiveStart,
-    isActive: Boolean,
-    yearActiveEnd: YearsActiveEnd
+    yearActiveStart: Int,
+    yearActiveEnd: Option[Int]
   )
 
   def searchArtists(
@@ -37,15 +36,15 @@ object Ch07_09 {
                            genreResult.filter(artist => locations.contains(artist.origin.name))
                          else genreResult
     if (searchByActiveYears)
-      locationResult.filter(artist => artist.yearActiveStart.value <= activeBefore &&
-                                        (artist.isActive || artist.yearActiveEnd.value >= activeAfter))
-                                        else locationResult
+      locationResult.filter(artist => artist.yearActiveStart <= activeBefore &&
+                                      (artist.yearActiveEnd.forall(_ >= activeAfter)))
+    else locationResult
   }
 
   val artists = List(
-    Artist("Metallica", Genre("Heave Metal"), Location("U.S."), YearsActiveStart(1981), true, YearsActiveEnd(0)),
-    Artist("Led Zeppelin", Genre("Hard Rock"), Location("England"), YearsActiveStart(1968), false, YearsActiveEnd(1980)),
-    Artist("Bee Gees", Genre("Pop"), Location("England"), YearsActiveStart(1958), false, YearsActiveEnd(2003))
+    Artist("Metallica", Genre("Heave Metal"), Location("U.S."), 1981, None),
+    Artist("Led Zeppelin", Genre("Hard Rock"), Location("England"), 1968, Some(1980)),
+    Artist("Bee Gees", Genre("Pop"), Location("England"), 1958, Some(2003))
   )
 
   def run(): Unit = {
