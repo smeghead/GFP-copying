@@ -17,6 +17,7 @@ object Ch07_09 {
   enum YearsActive {
     case StillActive(since: Int)
     case ActiveBetween(start: Int, end: Int)
+    case ActiveBetweenWithSuspended(start: Int, suspend: Int, restart: Int, end: Int)
   }
   import YearsActive._
 
@@ -27,24 +28,35 @@ object Ch07_09 {
     yearsActive: YearsActive
   )
 
+  enum SerachCondition {
+    case SearchByGenre(genres: List[MusicGenre])
+    case SearchByOrigin(locations: List[Location])
+    case SearchByActiveYears(start: Int, end: Int)
+    case SearchByActiveTerm(term: Int, currentYear: Int)
+  }
+  import SerachCondition._
+
   def searchArtists(
     artists: List[Artist],
-    genres: List[MusicGenre],
-    locations: List[String],
-    searchByActiveYears: Boolean,
-    activeAfter: Int,
-    activeBefore: Int
+    requiredConditions: List[SerachCondition]
   ): List[Artist] = {
     artists.filter(artist =>
-      (genres.isEmpty || genres.contains(artist.genre)) &&
-      (locations.isEmpty || locations.contains(artist.origin)) &&
-      (searchByActiveYears || wasArtistActive(artist, activeAfter, activeBefore)))
+      requiredConditions.forall(condition =>
+        condition match {
+          case SearchByGenre(genres) => genres.contains(artist.genre)
+          case SearchByOrigin(locations) => locations.contains(artist.origin)
+          case SearchByActiveYears(start, end) => wasArtistActive(artist, start, end)
+          case SearchByActiveTerm(term, currentYear) => activeLength(artist, currentYear) >= term
+        }
+      )
+    )
   }
 
   def activeLength(artist: Artist, currentYear: Int): Int = {
     artist.yearsActive match {
       case StillActive(since) => currentYear - since
       case ActiveBetween(start, end) => end - start
+      case ActiveBetweenWithSuspended(start, suspend, restart, end) => suspend - start + end - restart
     }
   }
 
@@ -52,34 +64,49 @@ object Ch07_09 {
     artist.yearsActive match {
       case StillActive(since)        => since <= yearEnd
       case ActiveBetween(start, end) => start <= yearEnd && end >= yearStart
+      case ActiveBetweenWithSuspended(start, suspend, restart, end) => {
+        (start <= yearEnd && suspend >= yearStart) ||
+        (restart <= yearEnd && end >= yearStart)
+      }
     }
   }
 
   val artists = List(
     Artist("Metallica", HeavyMetal, Location("U.S."), StillActive(1981)),
     Artist("Led Zeppelin", HardRock, Location("England"), ActiveBetween(1968, 1980)),
-    Artist("Bee Gees", Pop, Location("England"), ActiveBetween(1958, 2003))
+    Artist("Bee Gees", Pop, Location("England"), ActiveBetweenWithSuspended(1958, 2003, 2009, 2012))
   )
 
   def run(): Unit = {
     {
-      val result = searchArtists(artists, List(Pop), List("England"), true, 1950, 2022)
+      val result = searchArtists(artists, List(
+        SearchByGenre(List(Pop)),
+        SearchByOrigin(List("England")),
+        SearchByActiveYears(1950, 2022)
+      ))
       println(result)
     }
     {
-      val result = searchArtists(artists, List.empty, List("England"), true, 1950, 2022)
+      val result = searchArtists(artists, List(
+        SearchByOrigin(List("England")),
+        SearchByActiveYears(1950, 2022)
+      ))
       println(result)
     }
     {
-      val result = searchArtists(artists, List.empty, List.empty, true, 1981, 2003)
+      val result = searchArtists(artists, List(
+        SearchByActiveYears(1981, 2003)
+      ))
       println(result)
     }
     {
-      val result = searchArtists(artists, List.empty, List("U.S."), false, 0, 0)
+      val result = searchArtists(artists, List(
+        SearchByOrigin(List("U.S."))
+      ))
       println(result)
     }
     {
-      val result = searchArtists(artists, List.empty, List.empty, false, 2019, 2022)
+      val result = searchArtists(artists, List.empty)
       println(result)
     }
     println("7.29 Pattern Matching")
@@ -106,6 +133,25 @@ object Ch07_09 {
         "Bee Gees", Pop, Location("England"), ActiveBetween(1958, 2003)), 2022)
       println(result)
       assert(result == 45)
+    }
+    println("7.37 change spacification")
+    {
+      val result = activeLength(Artist(
+        "Bee Gees", Pop, Location("England"), ActiveBetweenWithSuspended(1958, 2003, 2009, 2012)), 2022)
+      println(result)
+      assert(result == 48)
+    }
+    {
+      val result = searchArtists(artists, List(
+        SearchByActiveTerm(30, 2024)
+      ))
+      println(result)
+    }
+    {
+      val result = searchArtists(artists, List(
+        SearchByActiveTerm(46, 2024)
+      ))
+      println(result)
     }
   }
 }
