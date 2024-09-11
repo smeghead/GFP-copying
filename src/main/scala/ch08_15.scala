@@ -1,4 +1,6 @@
 
+import cats.effect.IO
+
 object Ch08_15 {
 
   case class MeetingTime (start: Int, end: Int)
@@ -36,7 +38,7 @@ object Ch08_15 {
 
   def schedule(person1: String, person2: String, lengthHours: Int): IO[Option[MeetingTime]] = {
     for {
-      mettings <- scheduledMeetings(person1, person2)
+      meetings <- scheduledMeetings(person1, person2)
     } yield firstSpace(meetings, lengthHours)
   }
 
