@@ -19,6 +19,9 @@ object Ch10_02 {
         cityCheckIns
           .updatedWith(city)(_.map(_ + 1).orElse(Some(1)))
       )
+      .chunkN(100_000)
+      .map(_.last)
+      .unNone
       .map(topCities)
       .foreach(IO.println)
       .compile.drain
@@ -34,15 +37,27 @@ object Ch10_02 {
       .take(3)
   }
 
+  // val checkIns: Stream[IO, City] =
+  //   Stream(
+  //     City("Sydney"),
+  //     City("Sydney"),
+  //     City("Cape Town"),
+  //     City("Singapore"),
+  //     City("Cape Town"),
+  //     City("Sydney"),
+  //   ).covary[IO]
   val checkIns: Stream[IO, City] =
     Stream(
       City("Sydney"),
-      City("Sydney"),
+      City("Dublin"),
       City("Cape Town"),
-      City("Singapore"),
-      City("Cape Town"),
-      City("Sydney"),
-    ).covary[IO]
+      City("Lima"),
+      City("Singapore")
+    )
+    .repeatN(100_000)
+    .append(Stream.range(0, 100_000).map(i => City(s"City $i")))
+    .append(Stream(City("Sydney"), City("Sydney"), City("Lima")))
+    .covary[IO]
 
   def run(): Unit = {
     {
