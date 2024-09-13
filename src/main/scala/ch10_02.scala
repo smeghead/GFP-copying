@@ -1,5 +1,5 @@
 
-import cats.effect.IO
+import cats.effect.{IO, Ref}
 import fs2.{Pure, Stream}
 import cats.effect.unsafe.implicits.global
 
