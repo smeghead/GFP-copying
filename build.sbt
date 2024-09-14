@@ -28,6 +28,8 @@ version := "1.0"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0"
 libraryDependencies += "org.typelevel" %% "cats-effect" % "3.5.4"
 libraryDependencies += "co.fs2"            %% "fs2-core"         % "3.11.0"
+libraryDependencies += "org.apache.jena"    % "apache-jena-libs" % "5.1.0"
+libraryDependencies += "org.apache.jena"    % "jena-fuseki-main" % "5.1.0"
 
 // Here, `libraryDependencies` is a set of dependencies, and by using `+=`,
 // we're adding the scala-parser-combinators dependency to the set of dependencies
