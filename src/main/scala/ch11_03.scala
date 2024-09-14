@@ -60,6 +60,43 @@ object Ch11_03 {
       .queryEndPoint("sparql").build
   )
 
+  def execQuery(getConnection: IO[RDFConnection], query: String): IO[List[QuerySolution]] = {
+    getConnection.flatMap(c => IO.delay(
+      asScala(c.query(QueryFactory.create(query)).execSelect()).toList
+    ))
+  }
+
+  def parseAttraction(s: QuerySolution): IO[Attraction] = {
+    IO.delay(Attraction(
+      name = s.getLiteral("attractionLabel").getString,
+      description =
+        if (s.contains("description"))
+          Some(s.getLiteral("description").getString)
+        else None,
+      location = Location(
+        id = LocationId(s.getResource("location").getLocalName),
+        name = s.getLiteral("locationLabel").getString,
+        population = s.getLiteral("population").getInt
+      )
+    ))
+  }
+
+  def findAtractions(name: String, ordering: AttractionOrdering, limit: Int): IO[List[Attraction]] = {
+    val orderBy = ordering match {
+      case ByName => "?attractionLabel"
+      case ByLocationPopulation => "DESC(?population)"
+    }
+
+    val query = s"""... SELECT DISTINCT ?attraction ?attractionLabel
+      ?description ?location ?locationLabel ?population WHERE {
+        ...
+      } ORDER BY $orderBy LIMIT $limit"""
+
+    for {
+      solutions <- execQuery(getConnection, query)
+      attractions <- solutions.traverse(parseAttraction)
+    } yield attractions
+  }
 
   def run(): Unit = {
     {
